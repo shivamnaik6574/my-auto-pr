@@ -1,0 +1,39 @@
+name: Commit Logger
+
+on:
+  push:
+    branches:
+      - main
+      - auto-pr-branch
+
+jobs:
+  commit_logger:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Check if pr-id.txt exists
+      id: check_file
+      run: echo "::set-output name=exists::$(test -f pr-id.txt && echo true || echo false)"
+
+    - name: Create or append to pr-id.txt
+      run: |
+        if [ "${{ steps.check_file.outputs.exists }}" == "true" ]; then
+          echo "Appending to pr-id.txt"
+          echo "" >> pr-id.txt
+        else
+          echo "Creating pr-id.txt"
+        fi
+        echo "Commit ID: $GITHUB_SHA" >> pr-id.txt
+        echo "Author: $GITHUB_ACTOR" >> pr-id.txt
+        echo "Commit Message: ${{ github.event.head_commit.message }}" >> pr-id.txt
+        echo "Date: $(date)" >> pr-id.txt
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "shivamnaik6574@gmail.com"
+        git config --local user.name "shivamnaik6574"
+        git add pr-id.txt
+        git commit -m "Add commit information"
+        git push
