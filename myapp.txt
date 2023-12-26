@@ -1,4 +1,3 @@
 #!/bin/bash
 
 echo "hello world"
-echo "this to verify wether PR is generated or not"
