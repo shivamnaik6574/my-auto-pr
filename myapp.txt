@@ -2,4 +2,3 @@
 
 echo "hello world"
 echo "Hello Shivam"
-echo "this is an update"
