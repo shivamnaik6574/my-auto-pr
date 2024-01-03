@@ -17,7 +17,6 @@ jobs:
         run: |
           git config user.name "${{ secrets.GIT_COMMIT_AUTHOR_NAME }}"
           git config user.email "${{ secrets.GIT_COMMIT_AUTHOR_EMAIL }}"
-
       - name: Extract Commit Message
         run: |
           COMMIT_MESSAGE=$(git log --format=%B -n 1 ${{ github.sha }})
@@ -26,7 +25,7 @@ jobs:
 
       - name: Create Pull Request
         run: |
-          PR_TITLE="Auto PR: ${{ steps.commit_message.outputs.commit_message }}"
+          PR_TITLE="This PR is for Commit I'd - : ${{ github.sha }}"
           PR_BODY="This is an automatically generated PR for commit ${{ github.sha }}.\n\n**Commit Message:**\n${{ steps.commit_message.outputs.commit_message }}"
           
           # Create a new branch for the pull request with the commit ID as the branch name
