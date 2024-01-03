@@ -1,4 +1,3 @@
-
 name: Auto Create PR
 
 on:
@@ -18,20 +17,28 @@ jobs:
         run: |
           git config user.name "${{ secrets.GIT_COMMIT_AUTHOR_NAME }}"
           git config user.email "${{ secrets.GIT_COMMIT_AUTHOR_EMAIL }}"
+
+      - name: Extract Commit Message
+        run: |
+          COMMIT_MESSAGE=$(git log --format=%B -n 1 ${{ github.sha }})
+          echo "Commit Message: $COMMIT_MESSAGE"
+        id: commit_message
+
       - name: Create Pull Request
         run: |
-          PR_TITLE="Auto PR for new commit"
-          PR_BODY="This is an automatically generated PR for commit ${{ github.sha }}."
-          # Create a new branch for the pull request
-          git checkout -b auto-branch-${{ github.sha }}
+          PR_TITLE="Auto PR: ${{ steps.commit_message.outputs.commit_message }}"
+          PR_BODY="This is an automatically generated PR for commit ${{ github.sha }}.\n\n**Commit Message:**\n${{ steps.commit_message.outputs.commit_message }}"
+          
+          # Create a new branch for the pull request with the commit message as the branch name
+          git checkout -b "auto-branch-${{ steps.commit_message.outputs.commit_message }}"
           # Commit changes to the new branch
           git commit --allow-empty -m "${PR_TITLE}"
           # Push the new branch to the repository
-          git push origin auto-branch-${{ github.sha }}
+          git push origin "auto-branch-${{ steps.commit_message.outputs.commit_message }}"
           # Create pull request using GitHub API
           PR_RESPONSE=$(curl -X POST \
             -H "Authorization: token ${{ secrets.TOKEN }}" \
-            -d '{"title":"'"${PR_TITLE}"'","body":"'"${PR_BODY}"'","head":"auto-branch-'"${{ github.sha }}"'","base":"main"}' \
+            -d '{"title":"'"${PR_TITLE}"'","body":"'"${PR_BODY}"'","head":"auto-branch-'"${{ steps.commit_message.outputs.commit_message }}"'","base":"main"}' \
             "https://api.github.com/repos/${{ github.repository }}/pulls")
           # Extract the pull request number from the API response
           PR_NUMBER=$(echo $PR_RESPONSE | jq -r '.number')
